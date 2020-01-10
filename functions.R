@@ -165,7 +165,7 @@ simulator <- function(biol, fisheries, v, d=0.5, control, ...) {
   # FWD to depletion
   eq <- fwd(biol, fisheries,
     control=fwdControl(year=2:30, quant="ssb_spawn",
-    value=seq(c(ssb(biol)[,1]), c(ssb(biol)[,1]) * d, length=29), biol=1))
+    value=seq(c(ssb(biol)[,1]), c(ssb(biol)[,1]) * (1-d), length=29), biol=1))
 
   n(biol)[,1] <- n(eq$biol)[,30]
 
@@ -180,8 +180,10 @@ simulator <- function(biol, fisheries, v, d=0.5, control, ...) {
 # abcMcMC(biol, fisheries, catch, survey, priors, iters=nrow(priors)) {{{
 # TODO ADD depletion, beta prior
 abcMcMC <- function(biol, fisheries, catch, survey, surveySigma, iter=500,
-  burnin=round(iter * 0.10), priors=list(v=c(log(400), 0.3), d=c(2, 2)),
-  vars=c(v=100, d=1)) {
+  burnin=round(iter * 0.10), priors=list(v=c(log(400), 0.1), d=c(2, 2)),
+  vars=c(v=50, d=1), verbose=TRUE) {
+
+  iter <- iter + burnin
 
   # CONTROL from FLQuants
   control <- as(FLQuants(catch=catch), 'fwdControl')
@@ -267,7 +269,7 @@ abcMcMC <- function(biol, fisheries, catch, survey, surveySigma, iter=500,
       # BUG: DROP runs with large deviations?
       if(chain[i, "pdeviation"] == 0)
         pprop <- 0
-      else
+      else 
         pprop <- min(0,
           sum(log(c(unlist(chain[i, c("pdeviation", "ptheta")]), qthetanew))) -
           sum(log(c(unlist(chain[i - 1, c("pdeviation", "ptheta")]),
@@ -291,12 +293,18 @@ abcMcMC <- function(biol, fisheries, catch, survey, surveySigma, iter=500,
     }
 
   # PROGRESS
-  cat("\r", i, "of", iter) 
-  flush.console()
+  if(verbose) {
+    cat("\r", i, "of", iter) 
+    flush.console()
+    }
   }
   cat("\n")
 
-  # TODO ADD burnin
+  # REMOVE burnin runs
+  omb <- iter(omb, seq(burnin + 1, iter))
+  omfs[[1]] <- iter(omfs[[1]],seq(burnin + 1, iter))
+  chain <- chain[seq(burnin + 1, iter),]
+
   res <- list(biol=omb, fisheries=omfs, chain=data.table(chain),
     runs=runs)
   

@@ -29,13 +29,11 @@ equil <- lhEql(lhpar, spwn=0.5,
 fpp <- as(equil, "FLStock")
 
 # SUBSET for single initial F level F=0.0077
-stk <- fpp[, 10]
+# DEBUG OM values: v=400, d=0.5
+stk <- fpp[, 16]
 dimnames(stk) <- list(year=1, age=1:9)
 range(stk, c('minfbar', 'maxfbar')) <- c(2, 8)
 om <- fwdWindow(stk, equil, end=nyears)
-
-# DEBUG OM values: f0 = 0.00766, K = 400
-ompar <- FLPar(f0=0.00766, K=400)
 
 # SET SRR
 bhm <- as(equil, "predictModel")

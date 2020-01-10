@@ -1,3 +1,5 @@
+
+```{r }
 # test.R - DESC
 # /test.R
 
@@ -5,9 +7,11 @@
 # Author: Iago MOSQUEIRA (WMR) <iago.mosqueira@wur.nl>
 #
 # Distributed under the terms of the GPL 3.0
+```
 
-#' # Running abcMcMC on test dataset
+# Running abcMcMC on test dataset
 
+```{r }
 library(FLasher)
 library(ggplotFL)
 library(mvtnorm)
@@ -72,3 +76,12 @@ ggplot(melt(t1$chain[,-5]), aes(x=value)) +
 
 # SAVE
 save(t1, om, file="t1.RData", compress="xz")
+```
+
+
+---
+title: "abc.R"
+author: "mosquia"
+date: "2020-01-10"
+---
+
