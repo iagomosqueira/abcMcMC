@@ -6,6 +6,7 @@
 #
 # Distributed under the terms of the GPL 3.0
 
+#' # Running abcMcMC on test dataset
 
 library(FLasher)
 library(ggplotFL)
@@ -36,7 +37,7 @@ plot(FLQuants(OM=stock.n(om), SURVEY=index(survey)))
 
 # TEST abcMcMC
 system.time(
-  t1 <- abcMcMC(biol, fisheries, catch[,-1], survey, surveysigma, iter=1000,
+  t1 <- abcMcMC(biol, fisheries, catch[,-1], survey, surveysigma, iter=500,
     vars=c(100, 2))
 )
 
@@ -46,8 +47,22 @@ plot(FLQuants(C=catch(t1[[2]][[1]]), NC=catch)) + ylim(c(0,NA))
 # COMPUTE acceptance rate
 sum(t1$chain$accept, na.rm=TRUE) / dim(t1$chain)[1]
 
+# PLOT trajectories SSB
+ggplot(ssb(t1$biol), aes(x=year, y=data, group=iter)) + geom_line()
+
+# PLOT corr(v, ssb[end]) & corr(d,ssb[end])
+chain[, ssb:=c(ssb(t1$biol)[,'30'])]
+ggplot(chain, aes(x=v, y=ssb)) + geom_point()
+ggplot(chain, aes(x=d, y=ssb)) + geom_point()
+ggplot(chain, aes(x=v*d, y=ssb)) + geom_point()
+
+# PLOT v prior vs. posterior
+chain[, ini:=d*v]
+pps <- melt(chain[, .(ini, ssb)])
+ggplot(pps, aes(value, group=variable, fill=variable)) + geom_histogram() + facet_wrap(~variable)
+
 # COMPARE SSB OM ~ T1
-plot(FLQuants(OM=ssb(biol), T1=ssb(t1$biol)[,,,,,101:600]))
+plot(FLQuants(OM=ssb(om), T1=ssb(t1$biol)[,,,,,seq(round(iter * 0.10), iter)]))
 
 # PLOT abc 25% iters burn-in
 plot(n(iter(t1$biol, seq(round(dims(t1$biol)$iter * 0.25), dims(t1$biol)$iter))))
@@ -58,4 +73,4 @@ ggplot(melt(t1$chain[,-5]), aes(x=value)) +
   facet_wrap(~variable, scales='free')
 
 # SAVE
-save(t1, om, file="t1.RData", compress="xz")
+# save(t1, om, file="t1.RData", compress="xz")

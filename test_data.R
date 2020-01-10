@@ -29,7 +29,7 @@ equil <- lhEql(lhpar, spwn=0.5,
 fpp <- as(equil, "FLStock")
 
 # SUBSET for single initial F level F=0.0077
-stk <- fpp[, 2]
+stk <- fpp[, 10]
 dimnames(stk) <- list(year=1, age=1:9)
 range(stk, c('minfbar', 'maxfbar')) <- c(2, 8)
 om <- fwdWindow(stk, equil, end=nyears)

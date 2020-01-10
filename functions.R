@@ -180,7 +180,8 @@ simulator <- function(biol, fisheries, v, d=0.5, control, ...) {
 # abcMcMC(biol, fisheries, catch, survey, priors, iters=nrow(priors)) {{{
 # TODO ADD depletion, beta prior
 abcMcMC <- function(biol, fisheries, catch, survey, surveySigma, iter=500,
-  burnin=round(iter * 0.10), vars=c(v=300, d=1)) {
+  burnin=round(iter * 0.10), priors=list(v=c(log(400), 0.3), d=c(2, 2)),
+  vars=c(v=100, d=1)) {
 
   # CONTROL from FLQuants
   control <- as(FLQuants(catch=catch), 'fwdControl')
@@ -189,11 +190,11 @@ abcMcMC <- function(biol, fisheries, catch, survey, surveySigma, iter=500,
   nyears <- dims(biol)$year
   
   # PRIORS and PI(theta)
-  v <- runif(iter, 200, 2000)
-  pv <- dunif(v, 200, 2000)
+  v <- rlnorm(iter, priors$v[1], priors$v[2])
+  pv <- dlnorm(v, priors$v[1], priors$v[2])
 
-  d <- rbeta(iter, 2, 2)
-  pd <- dbeta(d, 2, 2)
+  d <- rbeta(iter, priors$d[1], priors$d[2])
+  pd <- dbeta(d, priors$d[1], priors$d[2])
   
   ptheta <- pv * pd
 
@@ -263,8 +264,9 @@ abcMcMC <- function(biol, fisheries, catch, survey, surveySigma, iter=500,
         chain[i - 1, c("v", "d")], chain[i, c("v", "d")],
         vars)
 
+      # BUG: DROP runs with large deviations?
       if(chain[i, "pdeviation"] == 0)
-        prop <- 0
+        pprop <- 0
       else
         pprop <- min(0,
           sum(log(c(unlist(chain[i, c("pdeviation", "ptheta")]), qthetanew))) -
