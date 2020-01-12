@@ -38,7 +38,7 @@ plot(FLQuants(OM=stock.n(om), SURVEY=index(survey)))
 # TEST abcMcMC
 system.time(
   t1 <- abcMcMC(biol, fisheries, catch[,-1], survey, surveysigma, iter=1000,
-    vars=c(100, 2), verbose=FALSE)
+    vars=c(200, 4), verbose=TRUE)
 )
 
 # CATCH is matched perfectly, if possible
