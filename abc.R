@@ -38,7 +38,7 @@ plot(FLQuants(OM=stock.n(om), SURVEY=index(survey)))
 # TEST abcMcMC
 system.time(
   t1 <- abcMcMC(biol, fisheries, catch[,-1], survey, surveysigma, iter=1000,
-    vars=c(100, 2), verbose=TRUE)
+    vars=c(100, 2), verbose=FALSE)
 )
 
 # CATCH is matched perfectly, if possible
@@ -50,16 +50,9 @@ sum(t1$chain$accept, na.rm=TRUE) / dim(t1$chain)[1]
 # PLOT trajectories SSB
 ggplot(ssb(t1$biol), aes(x=year, y=data, group=iter)) + geom_line()
 
-# PLOT corr(v, ssb[end]) & corr(d,ssb[end])
-chain <- t1$chain[accept==TRUE,]
-chain[, ssb:=c(ssb(t1$biol)[,'30'])]
-ggplot(chain, aes(x=v, y=ssb)) + geom_point()
-ggplot(chain, aes(x=d, y=ssb)) + geom_point()
-ggplot(chain, aes(x=v*d, y=ssb)) + geom_point()
-
-# PLOT v prior vs. posterior
-chain[, ini:=d*v]
-pps <- melt(chain[, .(ini, ssb)])
+# PLOT prior vs. posterior
+t1$chain[, ini:=d*v]
+pps <- melt(t1$chain[, .(ini, ssb)])
 ggplot(pps, aes(value, group=variable, fill=variable)) + geom_histogram() + facet_wrap(~variable)
 
 # COMPARE SSB OM ~ T1
